@@ -65,14 +65,34 @@ header .logo {
     color: #555;
 }
 
+.card-status {
+    font-weight: bold;
+    color: red;
+}
+
+.adocao .card-status {
+    color: green;
+}
+
+.card-images {
+    display: flex;
+    overflow-x: scroll;
+}
+
+.card-images img {
+    height: 200px;
+    margin-right: 10px;
+}
+
+
 @media (max-width: 768px) {
     .card-img-top {
         height: 150px;
     }
 }
 
-
 footer {
     background-color: var(--primary-color);
     color: var(--secondary-color);
 }
+
