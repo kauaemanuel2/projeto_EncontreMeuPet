@@ -84,7 +84,6 @@ header .logo {
     margin-right: 10px;
 }
 
-
 @media (max-width: 768px) {
     .card-img-top {
         height: 150px;
@@ -95,4 +94,3 @@ footer {
     background-color: var(--primary-color);
     color: var(--secondary-color);
 }
-

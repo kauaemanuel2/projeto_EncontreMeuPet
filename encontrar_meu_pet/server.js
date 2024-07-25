@@ -3,12 +3,15 @@ const mysql = require('mysql2');
 const path = require('path');
 const bodyParser = require('body-parser');
 const multer = require('multer');
-const cors = require('cors');  // Adicione esta linha
+const cors = require('cors');
+
 const app = express();
 const port = 3000;
 
-const upload = multer({ dest: 'uploads/' });
+// Configuração do multer para o upload de arquivos
+const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
+// Conexão com o banco de dados
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -24,10 +27,12 @@ connection.connect(err => {
     console.log('Conectado ao banco de dados MySQL.');
 });
 
-app.use(cors());  // Adicione esta linha para habilitar CORS
+// Configurações do Express
+app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Endpoint para buscar os pets
 app.get('/api/pets', (req, res) => {
@@ -42,20 +47,48 @@ app.get('/api/pets', (req, res) => {
 });
 
 // Endpoint para adicionar um novo pet
-app.post('/api/pets', upload.array('images[]', 10), (req, res) => {  // Use upload.array para múltiplos arquivos
+app.post('/api/pets', upload.array('images', 10), (req, res) => {
     const { name, description, status, location } = req.body;
     const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
 
-    const query = 'INSERT INTO pets (name, imageUrl, description, status, location) VALUES (?, ?, ?, ?, ?)';
-    connection.query(query, [name, imageUrls.join(','), description, status, location], (err, results) => {
-        if (err) {
-            console.error('Erro ao inserir dados:', err);
-            res.status(500).send('Erro ao inserir dados.');
-            return;
+    connection.query(
+        'INSERT INTO pets (name, description, status, location) VALUES (?, ?, ?, ?)',
+        [name, description, status, location],
+        (err, results) => {
+            if (err) {
+                console.error('Erro ao inserir dados:', err);
+                res.status(500).send('Erro ao inserir dados.');
+                return;
+            }
+            const petId = results.insertId;
+            const imageInsertQueries = imageUrls.map(imageUrl => {
+                return new Promise((resolve, reject) => {
+                    connection.query(
+                        'INSERT INTO pet_images (pet_id, imageUrl) VALUES (?, ?)',
+                        [petId, imageUrl],
+                        (err, results) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(results);
+                            }
+                        }
+                    );
+                });
+            });
+
+            Promise.all(imageInsertQueries)
+                .then(() => {
+                    res.status(201).json({ message: 'Pet adicionado com sucesso' });
+                })
+                .catch(err => {
+                    console.error('Erro ao inserir imagens:', err);
+                    res.status(500).send('Erro ao inserir imagens.');
+                });
         }
-        res.status(201).json({ message: 'Pet adicionado com sucesso' });
-    });
+    );
 });
+
 
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);

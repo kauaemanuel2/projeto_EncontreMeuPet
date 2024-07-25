@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = document.createElement('div');
                 card.className = 'col-md-4 mb-4';
 
-                // Ajuste para usar uma única URL de imagem
                 const imageUrl = pet.imageUrl || '';
                 card.innerHTML = `
                     <div class="card">
@@ -39,19 +38,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('adicionarPetForm');
     form.addEventListener('submit', (event) => {
         event.preventDefault();
-        console.log('Formulário enviado');
-    
+
         const formData = new FormData(form);
-    
+
         fetch('http://localhost:3000/api/pets', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na resposta do servidor');
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Pet adicionado com sucesso:', data);
             alert('Pet adicionado com sucesso!');
-            // Atualizar a página ou adicionar o novo pet ao feed
+            location.reload(); // Atualiza a página para mostrar o novo pet
         })
         .catch(error => {
             console.error('Erro ao adicionar o pet:', error);
@@ -59,7 +62,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
-
-
-
