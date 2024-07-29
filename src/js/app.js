@@ -8,12 +8,42 @@ document.addEventListener('DOMContentLoaded', () => {
             data.forEach(pet => {
                 const card = document.createElement('div');
                 card.className = 'col-md-4 mb-4';
-
-                const imageUrl = pet.imageUrl || '';
+            
+                let imagesHtml = '';
+                if (Array.isArray(pet.images) && pet.images.length > 0) {
+                    imagesHtml += `
+                    <div id="carousel${pet.id}" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                    `;
+            
+                    pet.images.forEach((image, index) => {
+                        imagesHtml += `
+                        <div class="carousel-item ${index === 0 ? 'active' : ''}">
+                            <img src="${image}" class="d-block w-100" alt="${pet.name}">
+                        </div>
+                        `;
+                    });
+            
+                    imagesHtml += `
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel${pet.id}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Anterior</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel${pet.id}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Próximo</span>
+                        </button>
+                    </div>
+                    `;
+                } else {
+                    imagesHtml = '<img src="src/img/default.png" class="card-img-top" alt="Imagem não disponível">';
+                }
+            
                 card.innerHTML = `
                     <div class="card">
                         <div class="card-images">
-                            <img src="${imageUrl}" class="card-img-top" alt="${pet.name}">
+                            ${imagesHtml}
                         </div>
                         <div class="card-body">
                             <h5 class="card-title">${pet.name}</h5>
@@ -34,31 +64,4 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => {
             console.error('Erro ao buscar os pets:', error);
         });
-
-    const form = document.getElementById('adicionarPetForm');
-    form.addEventListener('submit', (event) => {
-        event.preventDefault();
-
-        const formData = new FormData(form);
-
-        fetch('http://localhost:3000/api/pets', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na resposta do servidor');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Pet adicionado com sucesso:', data);
-            alert('Pet adicionado com sucesso!');
-            location.reload(); // Atualiza a página para mostrar o novo pet
-        })
-        .catch(error => {
-            console.error('Erro ao adicionar o pet:', error);
-            alert('Erro ao adicionar o pet.');
-        });
-    });
 });

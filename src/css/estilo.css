@@ -75,14 +75,20 @@ header .logo {
 }
 
 .card-images {
-    display: flex;
-    overflow-x: scroll;
+    position: relative;
 }
 
-.card-images img {
+.carousel-inner {
+    width: 100%;
     height: 200px;
-    margin-right: 10px;
 }
+
+.carousel-item img {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+}
+
 
 @media (max-width: 768px) {
     .card-img-top {
